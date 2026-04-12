@@ -627,3 +627,151 @@ h1 {
   letter-spacing: 1px;
   text-transform: uppercase;
 }
+/* Verbs table */
+.verbs-section {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.col-toggles {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.col-toggles span {
+  color: rgba(255,255,255,0.4);
+  font-size: 0.85rem;
+}
+
+.col-toggles button {
+  padding: 4px 12px;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px;
+  color: rgba(255,255,255,0.4);
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.2s;
+}
+
+.col-toggles button.active {
+  background: rgba(255,107,43,0.15);
+  border-color: #ff6b2b;
+  color: #ff6b2b;
+}
+
+.verbs-table-wrap {
+  overflow-x: auto;
+}
+
+.verbs-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.verbs-table th {
+  background: rgba(255,107,43,0.15);
+  color: #ff6b2b;
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-bottom: 1px solid rgba(255,107,43,0.3);
+  white-space: nowrap;
+}
+
+.verbs-table td {
+  padding: 8px 14px;
+  color: #e0e0e0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  white-space: nowrap;
+}
+
+.verbs-table tr:hover td {
+  background: rgba(255,255,255,0.04);
+}
+
+.verbs-table td:last-child {
+  color: rgba(255,255,255,0.4);
+  font-style: italic;
+}
+
+/* Verb quiz */
+.verb-quiz {
+  max-width: 600px;
+}
+
+.verb-english {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 20px;
+}
+
+.verb-quiz-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: left;
+}
+
+.verb-quiz-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.verb-quiz-label {
+  font-size: 0.75rem;
+  color: #ff6b2b;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  min-width: 110px;
+}
+
+.verb-quiz-value {
+  color: #fff;
+  font-size: 0.95rem;
+}
+
+.verb-input {
+  flex: 1;
+  padding: 6px 12px;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 6px;
+  color: #fff;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.verb-input:focus {
+  border-color: #ff6b2b;
+}
+
+.verb-answer-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+
+.verb-answer-check.ok .user-ans {
+  color: #4caf50;
+}
+
+.verb-answer-check.fail .user-ans {
+  color: #f44336;
+  text-decoration: line-through;
+}
+
+.correct-ans {
+  color: #4caf50;
+  font-size: 0.9rem;
+}

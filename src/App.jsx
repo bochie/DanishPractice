@@ -1,11 +1,13 @@
 import { useState, useRef } from 'react'
-import { motion } from 'framer-motion'
+import { motion } from 'framer-motion' // eslint-disable-line
 import { topics } from './data'
 import { numberToDanish } from './numberUtils'
-import './App.css'
 import { FaGithub, FaInstagram, FaTelegram, FaEnvelope } from 'react-icons/fa6'
+import './App.css'
 
 const DANISH_CHARS = ['æ', 'ø', 'å', 'Æ', 'Ø', 'Å']
+const VERB_COLS = ['imperativ', 'infinitiv', 'praesens', 'imperfektum', 'perfektum', 'english']
+const VERB_LABELS = { imperativ: 'Imperativ', infinitiv: 'Infinitiv', praesens: 'Præsens', imperfektum: 'Imperfektum', perfektum: 'Perfektum', english: 'English' }
 
 function DanishKeyboard({ onChar }) {
   return (
@@ -14,6 +16,151 @@ function DanishKeyboard({ onChar }) {
       {DANISH_CHARS.map(c => (
         <button key={c} onClick={() => onChar(c)}>{c}</button>
       ))}
+    </div>
+  )
+}
+
+function VerbsTable({ verbs }) {
+  const [hidden, setHidden] = useState([])
+
+  const toggleCol = (col) => {
+    setHidden(prev => prev.includes(col) ? prev.filter(c => c !== col) : [...prev, col])
+  }
+
+  return (
+    <div className="verbs-section">
+      <div className="col-toggles">
+        <span>Hide columns:</span>
+        {VERB_COLS.map(col => (
+          <button
+            key={col}
+            className={hidden.includes(col) ? 'active' : ''}
+            onClick={() => toggleCol(col)}
+          >
+            {VERB_LABELS[col]}
+          </button>
+        ))}
+      </div>
+      <div className="verbs-table-wrap">
+        <table className="verbs-table">
+          <thead>
+            <tr>
+              {VERB_COLS.filter(c => !hidden.includes(c)).map(col => (
+                <th key={col}>{VERB_LABELS[col]}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {verbs.map((verb, i) => (
+              <tr key={i}>
+                {VERB_COLS.filter(c => !hidden.includes(c)).map(col => (
+                  <td key={col}>{verb[col]}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
+
+function VerbQuiz({ verbs }) {
+  const QUIZ_COLS = ['imperativ', 'infinitiv', 'praesens', 'imperfektum', 'perfektum']
+  const [shuffled] = useState(() => [...verbs].sort(() => Math.random() - 0.5))
+  const [index, setIndex] = useState(0)
+  const [inputs, setInputs] = useState({})
+  const [result, setResult] = useState(null)
+  const [score, setScore] = useState({ correct: 0, total: 0 })
+  const [currentHidden, setCurrentHidden] = useState(() => {
+    const all = [...QUIZ_COLS]
+    return all.sort(() => Math.random() - 0.5).slice(0, 2)
+  })
+  const VerbQuiz  = useRef(null)
+
+  const verb = shuffled[index]
+
+  const insertChar = (char) => {
+    const activeEl = document.activeElement
+    if (activeEl && activeEl.tagName === 'INPUT') {
+      const pos = activeEl.selectionStart ?? activeEl.value.length
+      const key = activeEl.dataset.key
+      const val = inputs[key] || ''
+      const newVal = val.slice(0, pos) + char + val.slice(pos)
+      setInputs(prev => ({ ...prev, [key]: newVal }))
+      setTimeout(() => {
+        activeEl.focus()
+        activeEl.setSelectionRange(pos + 1, pos + 1)
+      }, 0)
+    }
+  }
+
+  const check = () => {
+    let allCorrect = true
+    for (const col of currentHidden) {
+      const answer = verb[col].toLowerCase().trim()
+      const userAnswer = (inputs[col] || '').toLowerCase().trim()
+      if (userAnswer !== answer) { allCorrect = false; break }
+    }
+    setResult(allCorrect ? 'correct' : 'wrong')
+    setScore(s => ({ correct: s.correct + (allCorrect ? 1 : 0), total: s.total + 1 }))
+  }
+
+  const next = () => {
+    setIndex((index + 1) % shuffled.length)
+    setInputs({})
+    setResult(null)
+    setCurrentHidden([...QUIZ_COLS].sort(() => Math.random() - 0.5).slice(0, 2))
+  }
+
+  return (
+    <div className="quiz-wrapper">
+      <DanishKeyboard onChar={insertChar} />
+      <div className="quiz verb-quiz">
+        <div className="score">✅ {score.correct} / {score.total}</div>
+        <motion.div className={`quiz-card ${result === 'correct' ? 'flash-correct' : ''}`} key={index} initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }}>
+          <p className="verb-english">{verb.english}</p>
+          <div className="verb-quiz-grid">
+            {QUIZ_COLS.map(col => (
+              <div key={col} className="verb-quiz-row">
+                <span className="verb-quiz-label">{VERB_LABELS[col]}</span>
+                {currentHidden.includes(col) && !result ? (
+                  <input
+                    data-key={col}
+                    value={inputs[col] || ''}
+                    onChange={e => setInputs(prev => ({ ...prev, [col]: e.target.value }))}
+                    onKeyDown={e => e.key === 'Enter' && check()}
+                    placeholder="..."
+                    className="verb-input"
+                  />
+                ) : currentHidden.includes(col) && result ? (
+                  <div className={`verb-answer-check ${(inputs[col] || '').toLowerCase().trim() === verb[col].toLowerCase().trim() ? 'ok' : 'fail'}`}>
+                    <span className="user-ans">{inputs[col] || '—'}</span>
+                    {(inputs[col] || '').toLowerCase().trim() !== verb[col].toLowerCase().trim() && (
+                      <span className="correct-ans">→ {verb[col]}</span>
+                    )}
+                  </div>
+                ) : (
+                  <span className="verb-quiz-value">{verb[col]}</span>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {!result && (
+            <div className="quiz-actions" style={{ marginTop: '16px' }}>
+              <button onClick={check}>Check</button>
+            </div>
+          )}
+
+          {result && (
+            <motion.div className={`result ${result}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+              {result === 'correct' ? '✅ Correct!' : '❌ Check the answers above'}
+              <button onClick={next}>Next →</button>
+            </motion.div>
+          )}
+        </motion.div>
+      </div>
     </div>
   )
 }
@@ -284,7 +431,12 @@ export default function App() {
             <button
               key={t.id}
               className={topic?.id === t.id ? 'active' : ''}
-              onClick={() => { setTopic(t); setView(t.id === 'numbers' ? 'table' : 'cards') }}
+              onClick={() => {
+                if (!t.comingSoon) {
+                  setTopic(t)
+                  setView(t.id === 'numbers' ? 'table' : t.id === 'verbs' ? 'table' : 'cards')
+                }
+              }}
             >
               {t.emoji} {t.title}
             </button>
@@ -296,20 +448,48 @@ export default function App() {
       <div className="app">
         {!topic && (
           <motion.div className="home" initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
-            <h1>🇩🇰 Danish Practice</h1>
-            <p className="subtitle">Choose a topic to start learning</p>
+            <div className="hero">
+              <div className="hero-flag">🇩🇰</div>
+              <h1>Danish Practice</h1>
+              <p className="subtitle">Learn Danish vocabulary with flashcards and quizzes</p>
+              <div className="hero-stats">
+                <div className="stat">
+                  <span className="stat-num">{topics.filter(t => !t.comingSoon).reduce((a, t) => a + (t.words?.length || 0) + (t.verbs?.length || 0), 0)}</span>
+                  <span className="stat-label">Total words</span>
+                </div>
+                <div className="stat-divider" />
+                <div className="stat">
+                  <span className="stat-num">{topics.filter(t => !t.comingSoon).length}</span>
+                  <span className="stat-label">Topics</span>
+                </div>
+                <div className="stat-divider" />
+                <div className="stat">
+                  <span className="stat-num">2</span>
+                  <span className="stat-label">Practice modes</span>
+                </div>
+              </div>
+            </div>
+            <p className="section-title">Choose a topic</p>
             <div className="topics-grid">
               {topics.map(t => (
                 <motion.div
-                key={t.id}
-                className={`topic-card ${t.comingSoon ? 'coming-soon' : ''}`}
-                whileHover={!t.comingSoon ? { y: -6 } : {}}
-                onClick={() => { if (!t.comingSoon) { setTopic(t); setView(t.id === 'numbers' ? 'table' : 'cards') } }}
->
-                <span className="topic-emoji">{t.emoji}</span>
-                <h3>{t.title}</h3>
-                {t.comingSoon ? <p className="coming-soon-label">Coming Soon</p> : <p>{t.words.length} words</p>}
-</motion.div>
+                  key={t.id}
+                  className={`topic-card ${t.comingSoon ? 'coming-soon' : ''}`}
+                  whileHover={!t.comingSoon ? { y: -6 } : {}}
+                  onClick={() => {
+                    if (!t.comingSoon) {
+                      setTopic(t)
+                      setView(t.id === 'numbers' ? 'table' : t.id === 'verbs' ? 'table' : 'cards')
+                    }
+                  }}
+                >
+                  <span className="topic-emoji">{t.emoji}</span>
+                  <h3>{t.title}</h3>
+                  {t.comingSoon
+                    ? <p className="coming-soon-label">Coming Soon</p>
+                    : <p>{(t.words?.length || 0) + (t.verbs?.length || 0)} words</p>
+                  }
+                </motion.div>
               ))}
             </div>
           </motion.div>
@@ -321,7 +501,7 @@ export default function App() {
               <button className="back" onClick={() => setTopic(null)}>← Topics</button>
               <h2>{topic.emoji} {topic.title}</h2>
               <div className="header-controls">
-                {topic.id !== 'numbers' && (
+                {topic.id !== 'numbers' && topic.id !== 'verbs' && (
                   <select value={mode} onChange={e => setMode(e.target.value)}>
                     <option value="en-da">EN → DA</option>
                     <option value="da-en">DA → EN</option>
@@ -331,12 +511,19 @@ export default function App() {
             </motion.div>
 
             <div className="view-tabs">
-              {topic.id === 'numbers' ? (
+              {topic.id === 'numbers' && (
                 <>
                   <button className={view === 'table' ? 'active' : ''} onClick={() => setView('table')}>📋 Table</button>
                   <button className={view === 'numquiz' ? 'active' : ''} onClick={() => setView('numquiz')}>🔢 Number Quiz</button>
                 </>
-              ) : (
+              )}
+              {topic.id === 'verbs' && (
+                <>
+                  <button className={view === 'table' ? 'active' : ''} onClick={() => setView('table')}>📋 Table</button>
+                  <button className={view === 'quiz' ? 'active' : ''} onClick={() => setView('quiz')}>✏️ Quiz</button>
+                </>
+              )}
+              {topic.id !== 'numbers' && topic.id !== 'verbs' && (
                 <>
                   <button className={view === 'cards' ? 'active' : ''} onClick={() => setView('cards')}>📚 Cards</button>
                   <button className={view === 'quiz' ? 'active' : ''} onClick={() => setView('quiz')}>✏️ Quiz</button>
@@ -344,27 +531,29 @@ export default function App() {
               )}
             </div>
 
-            {view === 'table' && <NumbersTable words={topic.words} />}
-            {view === 'cards' && (
+            {topic.id === 'numbers' && view === 'table' && <NumbersTable words={topic.words} />}
+            {topic.id === 'numbers' && view === 'numquiz' && <NumberQuiz />}
+            {topic.id === 'verbs' && view === 'table' && <VerbsTable verbs={topic.verbs} />}
+            {topic.id === 'verbs' && view === 'quiz' && <VerbQuiz verbs={topic.verbs} />}
+            {topic.id !== 'numbers' && topic.id !== 'verbs' && view === 'cards' && (
               <div className="cards-grid">
-                {topic.words.map((word, i) => (
-                  <FlashCard key={i} word={word} mode={mode} />
-                ))}
+                {topic.words.map((word, i) => <FlashCard key={i} word={word} mode={mode} />)}
               </div>
             )}
-            {view === 'quiz' && <Quiz words={topic.words} mode={mode} />}
-            {view === 'numquiz' && <NumberQuiz />}
+            {topic.id !== 'numbers' && topic.id !== 'verbs' && view === 'quiz' && (
+              <Quiz words={topic.words} mode={mode} />
+            )}
           </>
         )}
       </div>
 
       <footer className="footer">
-  <span>Stanislav Bachinskiy</span>
-  <a href="https://github.com/bochie" target="_blank"><FaGithub /> GitHub</a>
-  <a href="mailto:stasikus2003@email.com"><FaEnvelope /> Email</a>
-  <a href="https://instagram.com/bachie_" target="_blank"><FaInstagram /> Instagram</a>
-  <a href="https://t.me/cringelord" target="_blank"><FaTelegram /> Telegram</a>
-</footer>
+        <span>Stanislav Bachinskiy</span>
+        <a href="https://github.com/bochie" target="_blank"><FaGithub /> GitHub</a>
+        <a href="mailto:stasikus2003@email.com"><FaEnvelope /> Email</a>
+        <a href="https://instagram.com/bachie" target="_blank"><FaInstagram /> Instagram</a>
+        <a href="https://t.me/cringelord" target="_blank"><FaTelegram /> Telegram</a>
+      </footer>
     </>
   )
 }
