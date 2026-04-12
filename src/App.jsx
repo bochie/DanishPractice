@@ -532,7 +532,7 @@ export default function App() {
         <span>Stanislav Bachinskiy</span>
         <a href="https://github.com/bochie" target="_blank"><FaGithub /> GitHub</a>
         <a href="mailto:stasikus2003@email.com"><FaEnvelope /> Email</a>
-        <a href="https://instagram.com/bachie" target="_blank"><FaInstagram /> Instagram</a>
+        <a href="https://instagram.com/bachie_" target="_blank"><FaInstagram /> Instagram</a>
         <a href="https://t.me/cringelord" target="_blank"><FaTelegram /> Telegram</a>
       </footer>
         <Analytics />

@@ -132,8 +132,7 @@ export const topics = [
       { danish: 'ærter', english: 'peas', emoji: '🫛' },
     ]
   }
-  ,
-  ,
+  , // asdasd // asdasdasda
   {
     id: 'verbs',
     title: 'Verbs',
