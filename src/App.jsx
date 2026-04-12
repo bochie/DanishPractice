@@ -4,6 +4,7 @@ import { topics } from './data'
 import { numberToDanish } from './numberUtils'
 import { FaGithub, FaInstagram, FaTelegram, FaEnvelope } from 'react-icons/fa6'
 import './App.css'
+import { Analytics } from '@vercel/analytics/react'
 
 const DANISH_CHARS = ['æ', 'ø', 'å', 'Æ', 'Ø', 'Å']
 const VERB_COLS = ['imperativ', 'infinitiv', 'praesens', 'imperfektum', 'perfektum', 'english']
@@ -448,51 +449,31 @@ export default function App() {
       <div className="app">
         {!topic && (
           <motion.div className="home" initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
-            <div className="hero">
-              <div className="hero-flag">🇩🇰</div>
-              <h1>Danish Practice</h1>
-              <p className="subtitle">Learn Danish vocabulary with flashcards and quizzes</p>
-              <div className="hero-stats">
-                <div className="stat">
-                  <span className="stat-num">{topics.filter(t => !t.comingSoon).reduce((a, t) => a + (t.words?.length || 0) + (t.verbs?.length || 0), 0)}</span>
-                  <span className="stat-label">Total words</span>
-                </div>
-                <div className="stat-divider" />
-                <div className="stat">
-                  <span className="stat-num">{topics.filter(t => !t.comingSoon).length}</span>
-                  <span className="stat-label">Topics</span>
-                </div>
-                <div className="stat-divider" />
-                <div className="stat">
-                  <span className="stat-num">2</span>
-                  <span className="stat-label">Practice modes</span>
-                </div>
-              </div>
-            </div>
-            <p className="section-title">Choose a topic</p>
-            <div className="topics-grid">
-              {topics.map(t => (
-                <motion.div
-                  key={t.id}
-                  className={`topic-card ${t.comingSoon ? 'coming-soon' : ''}`}
-                  whileHover={!t.comingSoon ? { y: -6 } : {}}
-                  onClick={() => {
-                    if (!t.comingSoon) {
-                      setTopic(t)
-                      setView(t.id === 'numbers' ? 'table' : t.id === 'verbs' ? 'table' : 'cards')
-                    }
-                  }}
-                >
-                  <span className="topic-emoji">{t.emoji}</span>
-                  <h3>{t.title}</h3>
-                  {t.comingSoon
-                    ? <p className="coming-soon-label">Coming Soon</p>
-                    : <p>{(t.words?.length || 0) + (t.verbs?.length || 0)} words</p>
-                  }
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
+  <h1>🇩🇰 Danish Practice</h1>
+  <p className="subtitle">Choose a topic to start learning</p>
+  <div className="topics-grid">
+    {topics.map(t => (
+      <motion.div
+        key={t.id}
+        className={`topic-card ${t.comingSoon ? 'coming-soon' : ''}`}
+        whileHover={!t.comingSoon ? { y: -6 } : {}}
+        onClick={() => {
+          if (!t.comingSoon) {
+            setTopic(t)
+            setView(t.id === 'numbers' ? 'table' : t.id === 'verbs' ? 'table' : 'cards')
+          }
+        }}
+      >
+        <span className="topic-emoji">{t.emoji}</span>
+        <h3>{t.title}</h3>
+        {t.comingSoon
+          ? <p className="coming-soon-label">Coming Soon</p>
+          : <p>{(t.words?.length || 0) + (t.verbs?.length || 0)} words</p>
+        }
+      </motion.div>
+    ))}
+  </div>
+</motion.div>
         )}
 
         {topic && (
@@ -554,6 +535,7 @@ export default function App() {
         <a href="https://instagram.com/bachie" target="_blank"><FaInstagram /> Instagram</a>
         <a href="https://t.me/cringelord" target="_blank"><FaTelegram /> Telegram</a>
       </footer>
+        <Analytics />
     </>
   )
 }
